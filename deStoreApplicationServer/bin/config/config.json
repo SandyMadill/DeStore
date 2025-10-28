@@ -1,0 +1,6 @@
+{
+	"appServerPort":"8080",
+	"dataServerIp":"localhost",
+	"dataServerPort":"3306",
+	"dataServerPassword":"root"
+}
