@@ -4,7 +4,6 @@
 /**
  * 
  */
-module DeStoreClientApp {
+module deStoreClientApp {
 	requires json.simple;
-	requires java.sql;
 }

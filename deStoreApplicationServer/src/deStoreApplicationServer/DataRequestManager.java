@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.json.simple.*;
 
 /**
  * Connects to the data server and makes requests
@@ -84,7 +85,7 @@ public class DataRequestManager {
 		}
 	}
 	
-	public String select(String tableName, List<String> columnNames, List<WhereStmnt> wheres) {
+	public JSONArray select(String tableName, List<String> columnNames, List<WhereStmnt> wheres) {
 		try {
 			String columnsStmnt = generateColumnsStmnt(columnNames.size());
 			String wheresStmnt = "";
@@ -112,11 +113,24 @@ public class DataRequestManager {
 			System.out.println(params.toString());
 			
 			PreparedStatement stmnt = prepareStatement(params, stmntString);
-			stmnt.executeQuery();
-			return "good";
+			ResultSet result = stmnt.executeQuery();
+			JSONArray resultJson = new JSONArray();
+			while (result.next()) {
+				JSONObject row = new JSONObject();
+				
+				columnNames.forEach(column ->{
+					try {
+						row.put(column, result.getObject(column));
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				});
+			}
+			return resultJson;
 		}
 		catch (SQLException e) {
-			return ("SQL EXCEPTION:" + e.getLocalizedMessage());
+			return null;
 		}
 	}
 	

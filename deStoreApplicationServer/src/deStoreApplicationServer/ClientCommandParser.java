@@ -3,6 +3,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+
 public class ClientCommandParser extends Thread {
 	
 	private Socket sock;
@@ -21,6 +22,7 @@ public class ClientCommandParser extends Thread {
 	}
 	
 	public ClientCommand parseCommand(String command) throws IOException {
+		System.out.println(command);
 		List<String> tokens= new ArrayList<String>();
 			Arrays.asList(
 				command.split(" (?=(?:[^\"]*\"[^\"]*\"[^\"]*)*$)")).forEach(a ->{
@@ -31,6 +33,8 @@ public class ClientCommandParser extends Thread {
 		for (int i=0;i < tokens.size()-1;i++) {
 			args[i]= tokens.get(i+1);
 		}
+		
+		System.out.println(tokens.get(0));
 		
 		if (tokens.get(0).equals("insert")) {
 			return new InsertCommand(args, dataRequestManager, objectOutputStream);

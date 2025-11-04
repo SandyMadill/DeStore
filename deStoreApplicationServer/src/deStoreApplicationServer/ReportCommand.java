@@ -1,9 +1,7 @@
 package deStoreApplicationServer;
-
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import org.json.simple.JSONArray;
 
 public class ReportCommand implements ClientCommand {
 	private ArrayList<String> args;
@@ -33,7 +31,9 @@ public class ReportCommand implements ClientCommand {
 					w = args.size();
 				}
 				List<String> columns = args.subList(1, w);
-				objectOutputStream.writeObject(dataRequestManager.select(tableName, columns, wheres));
+				JSONArray result = dataRequestManager.select(tableName, columns, wheres);
+				System.out.println(result.toString());
+				objectOutputStream.writeObject(result);
 			}
 		
 		}
