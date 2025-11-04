@@ -1,28 +1,65 @@
 package deStoreApplicationServer;
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
-public class ClientCommandParser {
+public class ClientCommandParser extends Thread {
 	
-	public ClientCommand parseCommand(String command) {
-		StringTokenizer tokenizer = new StringTokenizer(command, " ");
-		command = tokenizer.nextToken();
-		String[] args = new String[tokenizer.countTokens()];
-		for (int i = 0; tokenizer.hasMoreTokens(); i++) {
-			args[i] = tokenizer.nextToken();
+	private Socket sock;
+	private DataRequestManager dataRequestManager;
+	private ObjectOutputStream objectOutputStream;
+	
+	ClientCommandParser(Socket sock, DataRequestManager dataRequestManager){
+		try {
+			this.sock = sock;
+			this.dataRequestManager = dataRequestManager;
+			objectOutputStream = new ObjectOutputStream(sock.getOutputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public ClientCommand parseCommand(String command) throws IOException {
+		List<String> tokens= new ArrayList<String>();
+			Arrays.asList(
+				command.split(" (?=(?:[^\"]*\"[^\"]*\"[^\"]*)*$)")).forEach(a ->{
+					a = a.replaceAll("[\"]", "");
+					tokens.addAll(Arrays.asList(a.split(" ")));
+				});
+		String[] args = new String[tokens.size()-1];
+		for (int i=0;i < tokens.size()-1;i++) {
+			args[i]= tokens.get(i+1);
 		}
 		
-		if (command.equals("insert")) {
-			return new InsertCommand<Boolean>(args);
+		if (tokens.get(0).equals("insert")) {
+			return new InsertCommand(args, dataRequestManager, objectOutputStream);
 		}
-		else if (command.equals("remove")) {
-			return new RemoveCommand<Boolean>(args);
-		} else if (command.equals("update")) {
-			return new UpdateCommand<Boolean>(args);
-		} else if (command.equals("report")) {
-			return new ReportCommand(args);
+		else if (tokens.get(0).equals("remove")) {
+			return new RemoveCommand( args, dataRequestManager, objectOutputStream);
+		} else if (tokens.get(0).equals("update")) {
+			return new UpdateCommand(args, dataRequestManager, objectOutputStream);
+		} else if (tokens.get(0).equals("report")) {
+			System.out.println("fgjsflksjdflkjsdlkfjsdlkfjsdlkjfk");
+			return new ReportCommand(args, dataRequestManager, objectOutputStream);
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public void run() {
+		try {
+			objectOutputStream.writeObject("");
+			BufferedReader inputStream = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+			String commandString = inputStream.readLine();
+			ClientCommand command = parseCommand(commandString);
+			command.exec();
+			sock.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

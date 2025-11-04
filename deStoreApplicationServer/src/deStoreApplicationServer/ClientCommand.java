@@ -1,6 +1,12 @@
 package deStoreApplicationServer;
 
-public interface ClientCommand<T> {
+import java.io.*;
 
-	T exec(DataRequestManager dataRequestManager);
+public interface ClientCommand {
+	
+	public ObjectOutputStream getObjectOutputStream();
+	
+	public String help();
+	
+	public void exec();
 }
