@@ -7,7 +7,7 @@ public class ReportCommand implements ClientCommand {
 	private ArrayList<String> args;
 	private ObjectOutputStream objectOutputStream;
 	private DataRequestManager dataRequestManager;
-	
+
 	public ReportCommand(String[] args, DataRequestManager dataRequestManager, ObjectOutputStream objectOutputStream) {
 		this.args = new ArrayList(Arrays.asList(args));
 		this.dataRequestManager = dataRequestManager;
@@ -19,13 +19,9 @@ public class ReportCommand implements ClientCommand {
 	public void exec() {
 		try {
 			String tableName = args.get(0);
-			List<WhereStmnt> wheres = new ArrayList<WhereStmnt>();
+			List<CompareStmnt> wheres = new ArrayList<CompareStmnt>();
 			try {
-				wheres.addAll(WhereStmnt.getWhereStmntsFromArgs(args));
-			} catch (Exception e) {
-				objectOutputStream.writeObject(e.getMessage());
-			} finally {
-				System.out.println("sflksdjflksdjflkejlkfjlkjwerfoierfjhejfhejkdf");
+				wheres.addAll(CompareStmnt.getCompareStmntsFromArgs(args, "w"));
 				int w = args.indexOf("-w");
 				if (w == -1) {
 					w = args.size();
@@ -34,11 +30,13 @@ public class ReportCommand implements ClientCommand {
 				JSONArray result = dataRequestManager.select(tableName, columns, wheres);
 				System.out.println(result.toString());
 				objectOutputStream.writeObject(result);
+			} catch (Exception e) {
+				objectOutputStream.writeObject(e.getMessage());
 			}
 		
 		}
 		catch (IOException e) {
-			e.printStackTrace();
+			
 		}
 	}
 

@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.*;
 
 public class ClientMain {
+	private static Socket sock;
+	
 	public static void main(String[] args) {
 		ClientConfig config = new ClientConfig();
 		String ip = config.getAppServerIp();
@@ -12,11 +14,13 @@ public class ClientMain {
 		while(true) {
 			try {
 				String command = input.readLine();
-				Socket sock = new Socket(ip,port);
+				sock = new Socket(ip,port);
 				ObjectInputStream inputStream = new ObjectInputStream(sock.getInputStream());
 				DataOutputStream outputStream = new DataOutputStream(sock.getOutputStream());
-				outputStream.writeUTF(command + '\n');
+				System.out.println(command);
 				inputStream.readObject();
+				System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+				outputStream.writeBytes(command + '\n');
 				System.out.println(inputStream.readObject().toString());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

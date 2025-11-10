@@ -1,27 +1,38 @@
 package deStoreApplicationServer;
 
-import java.io.ObjectOutputStream;
+import java.io.*;
+import java.util.*;
 
 public class UpdateCommand implements ClientCommand {
 	
-	private String[] args;
+	private ArrayList<String> args;
 	private ObjectOutputStream objectOutputStream;
 	private DataRequestManager dataRequestManager;
 	
 	public UpdateCommand(String[] args, DataRequestManager dataRequestManager, ObjectOutputStream objectOutputStream) {
-		this.args = args;
+		this.args = new ArrayList<String>(Arrays.asList(args));
 		this.dataRequestManager = dataRequestManager;
 		this.objectOutputStream = objectOutputStream;
 	}
-	
-	public UpdateCommand(String[] args) {
-		this.args = args;
-	}
+
 	
 
 	@Override
 	public void exec() {
-		// TODO Auto-generated method stub
+		try {
+			String tablename = args.get(0);
+			List<CompareStmnt> sets = CompareStmnt.getCompareStmntsFromArgs(args, "s");
+			List<CompareStmnt> wheres = CompareStmnt.getCompareStmntsFromArgs(args, "w");
+			String dataResponse = dataRequestManager.update(tablename, sets, wheres);
+			objectOutputStream.writeObject(dataResponse);
+		} catch (Exception e) {
+			try {
+				objectOutputStream.writeObject(e.getMessage());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 		
 	}
 

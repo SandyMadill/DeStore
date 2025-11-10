@@ -47,8 +47,9 @@ public class ClientCommandParser extends Thread {
 			System.out.println("fgjsflksjdflkjsdlkfjsdlkfjsdlkjfk");
 			return new ReportCommand(args, dataRequestManager, objectOutputStream);
 		}
-		
-		return null;
+		else {
+			return new ErrorCommand(("Error: Unknown command \"" + tokens.get(0) + "\""), objectOutputStream);
+		}
 	}
 	
 	@Override

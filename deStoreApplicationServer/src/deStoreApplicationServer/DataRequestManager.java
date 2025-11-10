@@ -31,12 +31,23 @@ public class DataRequestManager {
 	 * @param columns the number of columns in the sql statement
 	 * @return the prepared statement section for the columns and values (should be reused for both)
 	 */
-	private String generateColumnsStmnt(int columns) {
+	private String generateColumnsStmnt(List<String> columnNames) {
 		String stmnt = "";
-		for (int i=0;i<columns;i++) {
-			stmnt += "?";
-			if(i+1<columns) {
-				stmnt += ",";
+		for (int i=0;i<columnNames.size();i++) {
+			stmnt+=columnNames.get(i) + " ";
+			if (i+1 < columnNames.size()) {
+				stmnt+=", ";
+			}
+		}
+		return stmnt;
+	}
+	
+	private String generateStmntSlice(List<String> values, String Delimiter, String start) {
+		String stmnt = start;
+		for (int i=0;i<values.size();i++) {
+			stmnt += values.get(i);
+			if(i+1<values.size()) {
+				stmnt += Delimiter;
 			}
 		}
 		return stmnt;
@@ -52,7 +63,7 @@ public class DataRequestManager {
 	private PreparedStatement prepareStatement(ArrayList<String> params, String stmntString) throws SQLException {
 		PreparedStatement stmnt = conn.prepareStatement(stmntString);
 		for (int i=0;i<params.size();i++) {
-			stmnt.setObject(i+1, params.get(i));
+			stmnt.setString(i+1, params.get(i));
 		}
 		
 		return stmnt;
@@ -66,8 +77,13 @@ public class DataRequestManager {
 				return "ERROR: the number of column names and values in the request do not match";
 			}
 			else {
-				String columnsStmnt = generateColumnsStmnt(columnNames.size());
-				String stmntString = "INSERT INTO ? (" + columnsStmnt + ") VALUES (" + columnsStmnt + ")";
+				String columnsStmnt = generateStmntSlice(columnNames, ",", "");
+				ArrayList<String> qs = new ArrayList<String>();
+				columnValues.forEach(column ->{
+					qs.add("?");
+				});
+				String valuesStmnt = generateStmntSlice(qs, ",", "");
+				String stmntString = "INSERT INTO ? (" + columnsStmnt + ") VALUES (" + valuesStmnt + ")";
 				ArrayList<String> params = new ArrayList<String>();
 				
 				params.add(tableName);
@@ -85,53 +101,89 @@ public class DataRequestManager {
 		}
 	}
 	
-	public JSONArray select(String tableName, List<String> columnNames, List<WhereStmnt> wheres) {
+	public JSONArray select(String tableName, List<String> columnNames, List<CompareStmnt> wheres) {
 		try {
-			String columnsStmnt = generateColumnsStmnt(columnNames.size());
+			String columnsStmnt = generateColumnsStmnt(columnNames);
 			String wheresStmnt = "";
+			ArrayList<String> params = new ArrayList<String>();
 			
 			if (wheres.size() > 0) {
-				wheresStmnt += " WHERE ";
+				List<String> whereComparisons = new ArrayList<String>();
 				for (int i=0;i<wheres.size();i++) {
-					wheresStmnt += wheres.get(i).getPreparedStatementSlice();
-					if (i+1 < wheres.size() ) {
-						wheresStmnt+=" AND ";
-					}
+					params.add(wheres.get(i).getVal());
+					whereComparisons.add(wheres.get(i).getPreparedStatementSlice());
 				}
+				wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " Where ");
 			}
 			
 			String stmntString = "SELECT " + columnsStmnt + " FROM " + tableName + wheresStmnt;
 			
-			
-			ArrayList<String> params = new ArrayList<String>();
-			params.addAll(columnNames);
-			
-			wheres.forEach(w ->{
-				params.addAll(w.getParams());
-			});
-			
 			System.out.println(params.toString());
 			
 			PreparedStatement stmnt = prepareStatement(params, stmntString);
+			System.out.println(stmnt.toString());
 			ResultSet result = stmnt.executeQuery();
 			JSONArray resultJson = new JSONArray();
 			while (result.next()) {
 				JSONObject row = new JSONObject();
-				
 				columnNames.forEach(column ->{
 					try {
-						row.put(column, result.getObject(column));
+						System.out.println(result.getString(1));
+						row.put(column, result.getString(column));
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				});
+				resultJson.add(row);
 			}
 			return resultJson;
 		}
 		catch (SQLException e) {
 			return null;
 		}
+	}
+	
+	public String update(String tableName, List<CompareStmnt> sets, List<CompareStmnt> wheres) {
+		try {
+			ArrayList<String> params = new ArrayList<String>();
+			String setsStmnt = "";
+			if (sets.size() > 0) {
+				List<String> setComparisons = new ArrayList<String>();
+				sets.forEach(s -> {
+					params.add(s.getVal());
+					setComparisons.add(s.getPreparedStatementSlice());
+				});
+				setsStmnt = generateStmntSlice(setComparisons, ",", " SET ");
+			}
+		
+			String wheresStmnt = "";
+		
+			if (wheres.size() > 0) {
+				List<String> whereComparisons = new ArrayList<String>();
+				wheres.forEach(w ->{
+					params.add(w.getVal());
+					whereComparisons.add(w.getPreparedStatementSlice());
+				});
+				wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " WHERE ");
+			}
+		
+			String stmntString = "UPDATE " + tableName + setsStmnt + wheresStmnt;
+		
+		
+			PreparedStatement stmnt = prepareStatement(params, stmntString);
+			
+			System.out.println(stmnt.toString());
+			
+			int res = stmnt.executeUpdate();
+			return String.valueOf(res);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+		
 	}
 	
 	

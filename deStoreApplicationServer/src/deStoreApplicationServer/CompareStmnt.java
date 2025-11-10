@@ -7,7 +7,7 @@ import java.util.List;
 /******
  * 	parses an sql where stmnt for the data request manager
  */
-public class WhereStmnt {
+public class CompareStmnt {
 	private String operator;
 	private String column;
 	private String val;
@@ -24,23 +24,26 @@ public class WhereStmnt {
 	/*********
 	 * crates a list of where statements from a list of arguments
 	 * @param args the arguments
-	 * @return list of where stmnts
+	 * @return list of comparison stmnts
 	 * @throws Exception
 	 */
-	public static List<WhereStmnt> getWhereStmntsFromArgs(List<String> args) throws Exception{
-		ArrayList<WhereStmnt> wheres = new ArrayList<WhereStmnt>();
-		int wLast = 0;
+	public static List<CompareStmnt> getCompareStmntsFromArgs(List<String> args, String flag) throws Exception{
+		ArrayList<CompareStmnt> wheres = new ArrayList<CompareStmnt>();
+		int last = 0;
 		for (int i = 0; i < args.size(); i++) {
-			if (args.get(i).equals("-w")) {
-				if (wheres.size() > 0 || wLast + 3 == i) {
+			if (args.get(i).equals("-"+flag)) {
+				System.out.println(last);
+				System.out.println(i);
+				if (wheres.size() == 0 || last + 4 == i) {
 					try {
-						wheres.add(new WhereStmnt(args.get(i+1), args.get(i+2), args.get(i+3)));
+						last = i;
+						wheres.add(new CompareStmnt(args.get(i+1), args.get(i+2), args.get(i+3)));
 					} catch (IndexOutOfBoundsException e) {
-						throw new Exception("a where statment must have 3 parameters");
+						throw new Exception("a compare statement must have 3 parameters");
 					}
 				}
 				else {
-					throw new Exception("a where statment must have 3 parameters");
+					throw new Exception("a compare statement must have 3 parameters");
 				}
 			}
 		}
@@ -49,7 +52,7 @@ public class WhereStmnt {
 	}
 	
 	
-	public WhereStmnt(String operator, String column, String val ) throws Exception {
+	public CompareStmnt(String column, String operator,  String val ) throws Exception {
 		if(operatorList.contains(operator)) {
 			this.operator = operator;
 			this.column = column;
@@ -65,14 +68,10 @@ public class WhereStmnt {
 	 * @return the seciont of the prepared statement for this where clause
 	 */
 	public String getPreparedStatementSlice() {
-		return "? " + operator + " ?";
+		return column + " " + operator + " ?";
 	}
 	
-	/***
-	 * produces a list containing the params for this where clause in order
-	 * @return the list containing the params for this where clause in order
-	 */
-	public List<String> getParams(){
-		return Arrays.asList(new String[] {column, val});
+	public String getVal() {
+		return val;
 	}
 }
