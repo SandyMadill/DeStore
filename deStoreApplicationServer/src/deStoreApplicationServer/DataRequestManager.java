@@ -186,5 +186,37 @@ public class DataRequestManager {
 		
 	}
 	
+	public String delete(String tableName, List<CompareStmnt> wheres) {
+		try {
+			ArrayList<String> params = new ArrayList<String>();
+			String wheresStmnt = "";
+			
+			if (wheres.size() > 0) {
+				List<String> whereComparisons = new ArrayList<String>();
+				wheres.forEach(w ->{
+					params.add(w.getVal());
+					whereComparisons.add(w.getPreparedStatementSlice());
+				});
+				wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " WHERE ");
+			}
+		
+			String stmntString = "DELETE FROM " + tableName + wheresStmnt;
+		
+		
+			PreparedStatement stmnt = prepareStatement(params, stmntString);
+			
+			System.out.println(stmnt.toString());
+			
+			int res = stmnt.executeUpdate();
+			return String.valueOf(res);
+			
+		}
+		catch (SQLException e) {
+			
+		}
+		return null;
+		
+	}
+	
 	
 }
