@@ -2,15 +2,22 @@ package deStoreClientApp;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 public class ClientMain {
 	private static Socket sock;
 	
 	public static void main(String[] args) {
+		MainWindow.main(null);		
 		ClientConfig config = new ClientConfig();
 		String ip = config.getAppServerIp();
 		int port = Integer.parseInt(config.getAppServerPort());
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+		
+		ArrayList<String> tableNames = SendCommand.send("table-names");
+		tableNames.forEach(tableName ->{
+			System.out.println(tableName);
+		});
 		while(true) {
 			try {
 				String command = input.readLine();

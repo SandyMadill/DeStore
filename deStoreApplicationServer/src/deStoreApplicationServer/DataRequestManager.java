@@ -34,7 +34,7 @@ public class DataRequestManager {
 	private String generateColumnsStmnt(List<String> columnNames) {
 		String stmnt = "";
 		for (int i=0;i<columnNames.size();i++) {
-			stmnt+=columnNames.get(i) + " ";
+			stmnt+=columnNames.get(i);
 			if (i+1 < columnNames.size()) {
 				stmnt+=", ";
 			}
@@ -101,7 +101,7 @@ public class DataRequestManager {
 		}
 	}
 	
-	public JSONArray select(String tableName, List<String> columnNames, List<CompareStmnt> wheres) {
+	public Object[] select(String tableName, List<String> columnNames, List<CompareStmnt> wheres) {
 		try {
 			String columnsStmnt = generateColumnsStmnt(columnNames);
 			String wheresStmnt = "";
@@ -123,23 +123,20 @@ public class DataRequestManager {
 			PreparedStatement stmnt = prepareStatement(params, stmntString);
 			System.out.println(stmnt.toString());
 			ResultSet result = stmnt.executeQuery();
-			JSONArray resultJson = new JSONArray();
+			ArrayList<String[]> tableData = new ArrayList<String[]>();
+			
 			while (result.next()) {
-				JSONObject row = new JSONObject();
-				columnNames.forEach(column ->{
-					try {
-						System.out.println(result.getString(1));
-						row.put(column, result.getString(column));
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				});
-				resultJson.add(row);
+				String[] row = new String[columnNames.size()];
+				for (int i=0;i<columnNames.size();i++) {
+					row[i]= result.getString(columnNames.get(i));
+				}
+				tableData.add(row);
 			}
-			return resultJson;
+			
+			return tableData.toArray();
 		}
 		catch (SQLException e) {
+			System.out.println(e.getMessage());
 			return null;
 		}
 	}
@@ -216,6 +213,40 @@ public class DataRequestManager {
 		}
 		return null;
 		
+	}
+	
+	public ArrayList<String> getTableNames(){
+		ArrayList<String> tableNames = new ArrayList<String>();
+		try {
+			Statement statement = conn.createStatement();
+			ResultSet result = statement.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = \"destore\";");
+			while (result.next()) {
+				tableNames.add(result.getString("table_name"));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return tableNames;
+	}
+	
+	public ArrayList<String[]> getColumnNamesForTable(String tableName){
+		ArrayList<String[]> columnNames = new ArrayList<String[]>();
+		try {
+			Statement statement = conn.createStatement();
+			ResultSet result = statement.executeQuery("SELECT column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + tableName + "'");
+			String command = "report " + tableName;
+			while (result.next()) {
+				String[] column = new String[2];
+				column[0] = result.getString("COLUMN_NAME");
+				column[1] = result.getString("DATA_TYPE");
+				columnNames.add(column);
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return columnNames;
 	}
 	
 	

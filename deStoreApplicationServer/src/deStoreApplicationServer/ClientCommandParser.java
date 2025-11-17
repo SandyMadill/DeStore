@@ -47,6 +47,12 @@ public class ClientCommandParser extends Thread {
 			System.out.println("fgjsflksjdflkjsdlkfjsdlkfjsdlkjfk");
 			return new ReportCommand(args, dataRequestManager, objectOutputStream);
 		}
+		else if (tokens.get(0).equals("table-names")) {
+			return new GetTableNamesCommand(dataRequestManager, objectOutputStream);
+		}
+		else if (tokens.get(0).equals("column-names") ) {
+			return new GetColumnNamesForTable(tokens.get(1), dataRequestManager, objectOutputStream);
+		}
 		else {
 			return new ErrorCommand(("Error: Unknown command \"" + tokens.get(0) + "\""), objectOutputStream);
 		}

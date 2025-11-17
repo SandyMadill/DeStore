@@ -27,8 +27,7 @@ public class ReportCommand implements ClientCommand {
 					w = args.size();
 				}
 				List<String> columns = args.subList(1, w);
-				JSONArray result = dataRequestManager.select(tableName, columns, wheres);
-				System.out.println(result.toString());
+				Object[] result = dataRequestManager.select(tableName, columns, wheres);
 				objectOutputStream.writeObject(result);
 			} catch (Exception e) {
 				objectOutputStream.writeObject(e.getMessage());
