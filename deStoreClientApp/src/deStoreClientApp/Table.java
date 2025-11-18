@@ -35,8 +35,22 @@ public class Table {
 			tableData[i] = row;
 		}
 		
-		tableName = tableName;
+		this.tableName = tableName;
 		
+	}
+	
+	public void updateRow(int row, String[] newColumns) {
+		String command = "update " + tableName;
+		for (int i=1;i<columnNames.length;i++) {
+			command += " " + columnNames[i];
+		}
+		command += " -v";
+		for (int i=0;i<newColumns.length;i++) {
+			command += " \"" + newColumns[i] + "\"";
+		}
+		command += " -w " + columnNames[0] + " = " + (String) tableData[row][0];
+		
+		System.out.println(command);
 	}
 	
 	public String[] getColumnNames() {
@@ -45,6 +59,27 @@ public class Table {
 	
 	public Object[][] getTableData() {
 		return tableData;
+	}
+	
+	public String getDataTypeFromColumnName(String columnName) {
+		for (int i=0;i<columnName.length();i++) {
+			if (columnNames[i].equals(columnName)) {
+				return columnTypes[i];
+			}
+		}
+		return null;
+	}
+	
+	public void insertRow(String[] newColumns) {
+		String command = "insert " + tableName;
+		for (int i=1;i<columnNames.length;i++) {
+			command += " " + columnNames[i];
+		}
+		command += " -v";
+		for (int i=0;i<newColumns.length;i++) {
+			command += " \"" + newColumns[i] + "\"";
+		}
+		System.out.println(command);
 	}
 	
 	public String getTableName() {

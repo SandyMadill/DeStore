@@ -21,12 +21,14 @@ CREATE TABLE destore.Customer(
 );
 
 CREATE TABLE destore.Stock(
+	stock_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	product_id int NOT NULL,
 	store_id int NOT NULL,
 	stock int
 );
 
 CREATE TABLE destore.Price_Control(
+	price_control_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	product_id int NOT NULL,
 	store_id int NOT NULL,
 	cond VARCHAR(100),
@@ -34,10 +36,11 @@ CREATE TABLE destore.Price_Control(
 );
 
 CREATE TABLE destore.Advance_Payment(
+	advance_Payment_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	product_id INT NOT NULL,
 	customer_id INT NOT NULL,
 	payment_rate INT,
-	purchase_date VARCHAR(100),
+	purchase_date DATETIME,
 	payments_made INT,
 	payment_cost FLOAT,
 	complete BOOL

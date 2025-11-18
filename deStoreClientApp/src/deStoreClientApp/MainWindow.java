@@ -6,6 +6,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
+
 import java.awt.Window.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,19 +101,55 @@ public class MainWindow extends JFrame {
 		JButton btnGetTable = new JButton("Get Table");
 		btnGetTable.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				updateTable();
+				if (tableNameList.getSelectedIndex() != -1) {
+					updateTable();
+				}
+				else {
+					JOptionPane.showMessageDialog(contentPane,
+							"You haven't selected a table",
+							"Validation Error",
+							JOptionPane.ERROR_MESSAGE);
+				}
 			}
 		});
 		
 		JScrollPane scrollPane = new JScrollPane();
 		
-		JButton newRecordBtn = new JButton("New button");
-		newRecordBtn.addActionListener(new ActionListener() {
+		JButton updateTableBtn = new JButton("Update Table");
+		updateTableBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (selectedTable != null) {
-					TableForm tableForm = new TableForm(selectedTable);
+				int row = table.getSelectedRow();
+				if (selectedTable == null) {
+					JOptionPane.showMessageDialog(contentPane,
+							"You haven't selected a table",
+							"Validation Error",
+							JOptionPane.ERROR_MESSAGE);
+				}
+				else if (row == -1) {
+					JOptionPane.showMessageDialog(contentPane,
+							"You haven't selected a row",
+							"Validation Error",
+							JOptionPane.ERROR_MESSAGE);
+				}
+				else {
+					UpdateTableForm tableForm = new UpdateTableForm(selectedTable, row);
 					tableForm.setVisible(true);
-					
+				}
+			}
+		});
+		
+		JButton btnAddRow = new JButton("Add Row");
+		btnAddRow.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selectedTable == null) {
+					JOptionPane.showMessageDialog(contentPane,
+							"You haven't selected a table",
+							"Validation Error",
+							JOptionPane.ERROR_MESSAGE);
+				}
+				else {
+					InsertTableForm tableForm = new InsertTableForm(selectedTable);
+					tableForm.setVisible(true);
 				}
 			}
 		});
@@ -124,10 +162,12 @@ public class MainWindow extends JFrame {
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 						.addComponent(btnGetTable)
 						.addComponent(tableNameList, GroupLayout.PREFERRED_SIZE, 142, GroupLayout.PREFERRED_SIZE)
-						.addComponent(newRecordBtn))
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+							.addComponent(btnAddRow)
+							.addComponent(updateTableBtn)))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1699, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(45, Short.MAX_VALUE))
+					.addContainerGap(163, Short.MAX_VALUE))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -140,8 +180,10 @@ public class MainWindow extends JFrame {
 							.addGap(8)
 							.addComponent(tableNameList, GroupLayout.PREFERRED_SIZE, 131, GroupLayout.PREFERRED_SIZE)
 							.addGap(42)
-							.addComponent(newRecordBtn)))
-					.addContainerGap(235, Short.MAX_VALUE))
+							.addComponent(updateTableBtn)
+							.addGap(3)
+							.addComponent(btnAddRow)))
+					.addContainerGap(307, Short.MAX_VALUE))
 		);
 		
 		table = new JTable();
