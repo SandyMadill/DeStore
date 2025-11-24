@@ -25,13 +25,15 @@ import javax.swing.JButton;
 import javax.swing.ScrollPaneConstants;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
-public class TableForm extends JFrame {
+public abstract class TableFormView extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	public ArrayList<JTextField> textFields;
-	private Table formTable;
+	protected ArrayList<JTextField> textFields;
+	protected TableModel formTable;
 
 	
 	private JPanel createFormComponent(String columnName) {
@@ -39,20 +41,12 @@ public class TableForm extends JFrame {
 		JPanel newPanel = new JPanel();
 		newPanel.add(new JLabel(columnName));
 		JTextField textField = null;
-		if (formTable.getDataTypeFromColumnName(columnName).equals("datetime")) {
-			MaskFormatter dateFormatter;
-			try {
-				dateFormatter = new MaskFormatter("##/##/####");
-				dateFormatter.setPlaceholderCharacter('_');
-				textField = new JFormattedTextField(dateFormatter);
-				
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
+		try {
+			textField = formTable.getTextFieldForColumn(columnName);
 		}
-		else {
-			textField = new JTextField();
-			
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
 		textField.setColumns(10);
 		textFields.add(textField);
@@ -60,12 +54,18 @@ public class TableForm extends JFrame {
 		return newPanel;
 	}
 	
-	public JButton btnSubmit = new JButton("Submit");
 
 	/**
 	 * Create the frame.
 	 */
-	public TableForm(Table table) {
+	public TableFormView(TableModel table) {
+		JButton btnSubmit = new JButton("Submit");
+		btnSubmit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				onSubmit();
+			}
+		});
+		
 		setResizable(false);
 		textFields = new ArrayList<JTextField>();
 		formTable = table;
@@ -89,8 +89,11 @@ public class TableForm extends JFrame {
 		formPannel.add(submitPannel);
 		
 		String[] columnNames = formTable.getColumnNames();
-		for (int i=1;i< columnNames.length;i++) {
-			formPannel.add(createFormComponent(columnNames[i]));
+		int key = table.getKey();
+		for (int i=0;i< columnNames.length;i++) {
+			if (i!=key) {
+				formPannel.add(createFormComponent(columnNames[i]));
+			}
 		}
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
@@ -116,4 +119,7 @@ public class TableForm extends JFrame {
 		contentPane.setLayout(gl_contentPane);
 		
 	}
+	
+	protected abstract void onSubmit();
+
 }

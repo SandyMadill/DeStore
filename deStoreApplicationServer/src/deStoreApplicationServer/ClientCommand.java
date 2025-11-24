@@ -1,12 +1,9 @@
 package deStoreApplicationServer;
 
 import java.io.*;
+import java.sql.SQLException;
 
 public interface ClientCommand {
 	
-	public ObjectOutputStream getObjectOutputStream();
-	
-	public String help();
-	
-	public void exec();
+	public void exec() throws Exception;
 }

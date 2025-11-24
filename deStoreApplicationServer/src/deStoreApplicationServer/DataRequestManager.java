@@ -71,180 +71,149 @@ public class DataRequestManager {
 	
 	
 	
-	public String insert(String tableName, List<String> columnNames, List<String> columnValues) {
-		try {
-			if (columnNames.size() != columnValues.size()) {
-				return "ERROR: the number of column names and values in the request do not match";
-			}
-			else {
-				String columnsStmnt = generateStmntSlice(columnNames, ",", "");
-				ArrayList<String> qs = new ArrayList<String>();
-				columnValues.forEach(column ->{
-					qs.add("?");
-				});
-				String valuesStmnt = generateStmntSlice(qs, ",", "");
-				String stmntString = "INSERT INTO ? (" + columnsStmnt + ") VALUES (" + valuesStmnt + ")";
-				ArrayList<String> params = new ArrayList<String>();
-				
-				params.add(tableName);
-				params.addAll(columnNames);
-				params.addAll(columnValues);
-				
-				PreparedStatement stmnt = prepareStatement(params, stmntString);
-				
-				int res = stmnt.executeUpdate();
-				stmnt.close();
-				return String.valueOf(res);
-			}
-		} catch (SQLException e) {
-			return ("SQL EXCEPTION:" + e.getLocalizedMessage());
+	public String insert(String tableName, List<String> columnNames, List<String> columnValues) throws SQLException {
+		if (columnNames.size() != columnValues.size()) {
+			return "ERROR: the number of column names and values in the request do not match";
 		}
-	}
-	
-	public Object[] select(String tableName, List<String> columnNames, List<CompareStmnt> wheres) {
-		try {
-			String columnsStmnt = generateColumnsStmnt(columnNames);
-			String wheresStmnt = "";
+		else {
+			String columnsStmnt = generateStmntSlice(columnNames, ",", "");
+			ArrayList<String> qs = new ArrayList<String>();
+			columnValues.forEach(column ->{
+				qs.add("?");
+			});
+			String valuesStmnt = generateStmntSlice(qs, ",", "");
+			String stmntString = "INSERT INTO " + tableName + "(" + columnsStmnt + ") VALUES (" + valuesStmnt + ")";
 			ArrayList<String> params = new ArrayList<String>();
-			
-			if (wheres.size() > 0) {
-				List<String> whereComparisons = new ArrayList<String>();
-				for (int i=0;i<wheres.size();i++) {
-					params.add(wheres.get(i).getVal());
-					whereComparisons.add(wheres.get(i).getPreparedStatementSlice());
-				}
-				wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " Where ");
-			}
-			
-			String stmntString = "SELECT " + columnsStmnt + " FROM " + tableName + wheresStmnt;
-			
-			System.out.println(params.toString());
-			
+
+			params.addAll(columnValues);
+				
 			PreparedStatement stmnt = prepareStatement(params, stmntString);
-			System.out.println(stmnt.toString());
-			ResultSet result = stmnt.executeQuery();
-			ArrayList<String[]> tableData = new ArrayList<String[]>();
-			
-			while (result.next()) {
-				String[] row = new String[columnNames.size()];
-				for (int i=0;i<columnNames.size();i++) {
-					row[i]= result.getString(columnNames.get(i));
-				}
-				tableData.add(row);
-			}
-			
-			return tableData.toArray();
-		}
-		catch (SQLException e) {
-			System.out.println(e.getMessage());
-			return null;
-		}
-	}
-	
-	public String update(String tableName, List<CompareStmnt> sets, List<CompareStmnt> wheres) {
-		try {
-			ArrayList<String> params = new ArrayList<String>();
-			String setsStmnt = "";
-			if (sets.size() > 0) {
-				List<String> setComparisons = new ArrayList<String>();
-				sets.forEach(s -> {
-					params.add(s.getVal());
-					setComparisons.add(s.getPreparedStatementSlice());
-				});
-				setsStmnt = generateStmntSlice(setComparisons, ",", " SET ");
-			}
-		
-			String wheresStmnt = "";
-		
-			if (wheres.size() > 0) {
-				List<String> whereComparisons = new ArrayList<String>();
-				wheres.forEach(w ->{
-					params.add(w.getVal());
-					whereComparisons.add(w.getPreparedStatementSlice());
-				});
-				wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " WHERE ");
-			}
-		
-			String stmntString = "UPDATE " + tableName + setsStmnt + wheresStmnt;
-		
-		
-			PreparedStatement stmnt = prepareStatement(params, stmntString);
-			
-			System.out.println(stmnt.toString());
 			
 			int res = stmnt.executeUpdate();
+			stmnt.close();
 			return String.valueOf(res);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		
-		return null;
-		
 	}
 	
-	public String delete(String tableName, List<CompareStmnt> wheres) {
-		try {
-			ArrayList<String> params = new ArrayList<String>();
-			String wheresStmnt = "";
-			
-			if (wheres.size() > 0) {
-				List<String> whereComparisons = new ArrayList<String>();
-				wheres.forEach(w ->{
-					params.add(w.getVal());
-					whereComparisons.add(w.getPreparedStatementSlice());
-				});
-				wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " WHERE ");
+	public Object[] select(String tableName, List<String> columnNames, List<CompareStmnt> wheres) throws SQLException {
+		String columnsStmnt = generateColumnsStmnt(columnNames);
+		String wheresStmnt = "";
+		ArrayList<String> params = new ArrayList<String>();
+		
+		if (wheres.size() > 0) {
+			List<String> whereComparisons = new ArrayList<String>();
+			for (int i=0;i<wheres.size();i++) {
+				params.add(wheres.get(i).getVal());
+				whereComparisons.add(wheres.get(i).getPreparedStatementSlice());
 			}
-		
-			String stmntString = "DELETE FROM " + tableName + wheresStmnt;
-		
-		
-			PreparedStatement stmnt = prepareStatement(params, stmntString);
-			
-			System.out.println(stmnt.toString());
-			
-			int res = stmnt.executeUpdate();
-			return String.valueOf(res);
-			
+			wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " Where ");
 		}
-		catch (SQLException e) {
+		
+		String stmntString = "SELECT " + columnsStmnt + " FROM " + tableName + wheresStmnt;
 			
+			
+		PreparedStatement stmnt = prepareStatement(params, stmntString);
+		ResultSet result = stmnt.executeQuery();
+		ArrayList<String[]> tableData = new ArrayList<String[]>();
+			
+		while (result.next()) {
+			String[] row = new String[columnNames.size()];
+			for (int i=0;i<columnNames.size();i++) {
+				row[i]= result.getString(columnNames.get(i));
+			}
+			tableData.add(row);
 		}
-		return null;
+			
+		return tableData.toArray();
+	}
+	
+	public String update(String tableName, List<CompareStmnt> sets, List<CompareStmnt> wheres) throws SQLException {
+		ArrayList<String> params = new ArrayList<String>();
+		String setsStmnt = "";
+		if (sets.size() > 0) {
+			List<String> setComparisons = new ArrayList<String>();
+			sets.forEach(s -> {
+				params.add(s.getVal());
+				setComparisons.add(s.getPreparedStatementSlice());
+			});
+			setsStmnt = generateStmntSlice(setComparisons, ",", " SET ");
+		}
+		
+		String wheresStmnt = "";
+		
+		if (wheres.size() > 0) {
+			List<String> whereComparisons = new ArrayList<String>();
+			wheres.forEach(w ->{
+				params.add(w.getVal());
+				whereComparisons.add(w.getPreparedStatementSlice());
+			});
+			wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " WHERE ");
+		}
+		
+		String stmntString = "UPDATE " + tableName + setsStmnt + wheresStmnt;
+		
+		
+		PreparedStatement stmnt = prepareStatement(params, stmntString);
+		
+		System.out.println(stmnt.toString());
+			
+		int res = stmnt.executeUpdate();
+		return String.valueOf(res);	
+	}
+	
+	public String delete(String tableName, List<CompareStmnt> wheres) throws SQLException {
+		ArrayList<String> params = new ArrayList<String>();
+		String wheresStmnt = "";
+			
+		if (wheres.size() > 0) {
+			List<String> whereComparisons = new ArrayList<String>();
+			wheres.forEach(w ->{
+				params.add(w.getVal());
+				whereComparisons.add(w.getPreparedStatementSlice());
+			});
+			wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " WHERE ");
+		}
+		
+		String stmntString = "DELETE FROM " + tableName + wheresStmnt;
+		
+		
+		PreparedStatement stmnt = prepareStatement(params, stmntString);
+		
+		System.out.println(stmnt.toString());
+		
+		int res = stmnt.executeUpdate();
+		return String.valueOf(res);
 		
 	}
 	
-	public ArrayList<String> getTableNames(){
+	public ArrayList<String> getTableNames() throws SQLException{
 		ArrayList<String> tableNames = new ArrayList<String>();
-		try {
-			Statement statement = conn.createStatement();
-			ResultSet result = statement.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = \"destore\";");
-			while (result.next()) {
-				tableNames.add(result.getString("table_name"));
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Statement statement = conn.createStatement();
+		ResultSet result = statement.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = \"destore\";");
+		while (result.next()) {
+			tableNames.add(result.getString("table_name"));
 		}
+
 		return tableNames;
 	}
 	
-	public ArrayList<String[]> getColumnNamesForTable(String tableName){
+	public ArrayList<String[]> getColumnsForTable(String tableName) throws SQLException{
 		ArrayList<String[]> columnNames = new ArrayList<String[]>();
-		try {
-			Statement statement = conn.createStatement();
-			ResultSet result = statement.executeQuery("SELECT column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '" + tableName + "'");
-			String command = "report " + tableName;
-			while (result.next()) {
-				String[] column = new String[2];
-				column[0] = result.getString("COLUMN_NAME");
-				column[1] = result.getString("DATA_TYPE");
-				columnNames.add(column);
-			}
-		}
-		catch (SQLException e) {
-			e.printStackTrace();
+		Statement statement = conn.createStatement();
+		String stmntString = "SELECT c.COLUMN_NAME, c.DATA_TYPE, c.COLUMN_KEY, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME \n"
+				+ "FROM INFORMATION_SCHEMA.COLUMNS c LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE k \n"
+				+ "ON k.TABLE_NAME = c.TABLE_NAME AND k.COLUMN_NAME = c.COLUMN_NAME\n"
+				+ "WHERE c.TABLE_NAME = '" + tableName + "'";
+		ResultSet result = statement.executeQuery(stmntString);
+		String command = "report " + tableName;
+		while (result.next()) {
+			String[] column = new String[5];
+			column[0] = result.getString("COLUMN_NAME");
+			column[1] = result.getString("DATA_TYPE");
+			column[2] = result.getString("COLUMN_KEY");
+			column[3] = result.getString("REFERENCED_TABLE_NAME");
+			column[4] = result.getString("REFERENCED_COLUMN_NAME");
+			columnNames.add(column);
 		}
 		return columnNames;
 	}

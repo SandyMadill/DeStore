@@ -1,6 +1,7 @@
 package deStoreApplicationServer;
 import java.io.*;
 import java.net.*;
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -22,19 +23,37 @@ public class ClientCommandParser extends Thread {
 	}
 	
 	public ClientCommand parseCommand(String command) throws IOException {
-		System.out.println(command);
 		List<String> tokens= new ArrayList<String>();
-			Arrays.asList(
-				command.split(" (?=(?:[^\"]*\"[^\"]*\"[^\"]*)*$)")).forEach(a ->{
-					a = a.replaceAll("[\"]", "");
-					tokens.addAll(Arrays.asList(a.split(" ")));
-				});
+		Boolean quoteOpen = false;
+		String inQuote = "";
+		String[] splitCommand = command.split(" ");
+		for (int i=0;i<splitCommand.length;i++) {
+			if (quoteOpen == false) {
+				if (splitCommand[i].charAt(0) == '"') {
+					quoteOpen = true;
+				}
+				else {
+					tokens.add(splitCommand[i]);
+				}
+			}
+			if (quoteOpen == true) {
+				inQuote += splitCommand[i];
+				if (splitCommand[i].charAt(splitCommand[i].length()-1) == '"') {
+					quoteOpen = false;
+					tokens.add(inQuote.replaceAll("\"", ""));
+					inQuote = "";
+				}
+				else {
+					inQuote += " ";
+				}
+			}
+			
+		}
 		String[] args = new String[tokens.size()-1];
 		for (int i=0;i < tokens.size()-1;i++) {
 			args[i]= tokens.get(i+1);
 		}
 		
-		System.out.println(tokens.get(0));
 		
 		if (tokens.get(0).equals("insert")) {
 			return new InsertCommand(args, dataRequestManager, objectOutputStream);
@@ -44,14 +63,13 @@ public class ClientCommandParser extends Thread {
 		} else if (tokens.get(0).equals("update")) {
 			return new UpdateCommand(args, dataRequestManager, objectOutputStream);
 		} else if (tokens.get(0).equals("report")) {
-			System.out.println("fgjsflksjdflkjsdlkfjsdlkfjsdlkjfk");
 			return new ReportCommand(args, dataRequestManager, objectOutputStream);
 		}
 		else if (tokens.get(0).equals("table-names")) {
 			return new GetTableNamesCommand(dataRequestManager, objectOutputStream);
 		}
-		else if (tokens.get(0).equals("column-names") ) {
-			return new GetColumnNamesForTable(tokens.get(1), dataRequestManager, objectOutputStream);
+		else if (tokens.get(0).equals("columns") ) {
+			return new GetColumnsForTable(tokens.get(1), dataRequestManager, objectOutputStream);
 		}
 		else {
 			return new ErrorCommand(("Error: Unknown command \"" + tokens.get(0) + "\""), objectOutputStream);
@@ -60,16 +78,21 @@ public class ClientCommandParser extends Thread {
 	
 	@Override
 	public void run() {
+		String address = sock.getRemoteSocketAddress().toString();
 		try {
 			objectOutputStream.writeObject("");
 			BufferedReader inputStream = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			String commandString = inputStream.readLine();
 			ClientCommand command = parseCommand(commandString);
-			command.exec();
+			try {
+				command.exec();
+			} catch (Exception e) {
+				objectOutputStream.writeObject(e);
+			}
 			sock.close();
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Connection with adress: "+ address + "broken!");
 			e.printStackTrace();
 		}
 	}

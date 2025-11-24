@@ -3,24 +3,33 @@ package deStoreClientApp;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class InsertTableForm extends TableForm {
+import javax.swing.JOptionPane;
 
-	public InsertTableForm(Table table) {
+public class InsertTableForm extends TableFormView {
+
+	public InsertTableForm(TableModel table) {
 		super(table);
-		btnSubmit.addActionListener(new ActionListener() {
+		
+	}
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String[] newColumns = new String[textFields.size()];
-				for (int i=0;i<textFields.size();i++) {
-					newColumns[i] = textFields.get(i).getText();
-				}
-				
-				table.insertRow(newColumns);
-				
-			}
-			
-		});
+	@Override
+	protected void onSubmit() {
+		String[] newColumns = new String[textFields.size()];
+		for (int i=0;i<textFields.size();i++) {
+			newColumns[i] = textFields.get(i).getText();
+		}
+		
+		try {
+			formTable.insertRow(newColumns);
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(getContentPane(),
+					e1.getMessage(),
+					"Error",
+					JOptionPane.ERROR_MESSAGE);
+		} finally {
+			dispose();
+		}
+		
 	}
 
 }

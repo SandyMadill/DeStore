@@ -16,31 +16,12 @@ public class RemoveCommand implements ClientCommand {
 	
 
 	@Override
-	public void exec() {
-		try {
-			String tableName = args.get(0);
-			List<CompareStmnt> wheres = CompareStmnt.getCompareStmntsFromArgs(args, "w");
-			String result = dataRequestManager.delete(tableName, wheres);
-			objectOutputStream.writeObject(result);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public void exec() throws Exception {
+		String tableName = args.get(0);
+		List<CompareStmnt> wheres = CompareStmnt.getCompareStmntsFromArgs(args, "w");
+		String result = dataRequestManager.delete(tableName, wheres);
+		objectOutputStream.writeObject(result);
 		
-	}
-
-
-	@Override
-	public ObjectOutputStream getObjectOutputStream() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public String help() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

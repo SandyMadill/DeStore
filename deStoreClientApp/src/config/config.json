@@ -1,4 +1,1 @@
-{
-	"appServerIp":"localhost",
-	"appServerPort":"8080"
-}
+{"appServerPort":"8080","appServerIp":"localhost"}

@@ -10,19 +10,7 @@ public class ErrorCommand implements ClientCommand {
 		this.message = message;
 		this.objectOutputStream = objectOutputStream;
 	}
-
-	@Override
-	public ObjectOutputStream getObjectOutputStream() {
-		// TODO Auto-generated method stub
-		return objectOutputStream;
-	}
-
-	@Override
-	public String help() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
 	@Override
 	public void exec() {
 		try {

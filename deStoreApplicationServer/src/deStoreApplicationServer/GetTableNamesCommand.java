@@ -2,6 +2,7 @@ package deStoreApplicationServer;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.sql.SQLException;
 import java.util.List;
 
 public class GetTableNamesCommand implements ClientCommand {
@@ -14,19 +15,7 @@ public class GetTableNamesCommand implements ClientCommand {
 	}
 
 	@Override
-	public ObjectOutputStream getObjectOutputStream() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String help() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void exec() {
+	public void exec() throws SQLException, IOException {
 		try {
 			List<String> tableNames = dataRequestManager.getTableNames();
 			objectOutputStream.writeObject(tableNames);

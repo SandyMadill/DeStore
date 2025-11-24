@@ -3,30 +3,26 @@ import java.io.*;
 import java.net.*;
 
 public class SendCommand {
-	public static <T> T send(String command){
-		ClientConfig config = new ClientConfig();
+	public static <T> T send(String command) throws Exception, UnknownHostException{
 		T result = null;
+		Object res = null;
+		String ip = ClientConfig.getAppServerIp(); 
+		int port = 0;
 		try {
-			Socket sock = new Socket(config.getAppServerIp(), Integer.parseInt(config.getAppServerPort()));
-			ObjectInputStream inputStream = new ObjectInputStream(sock.getInputStream());
-			DataOutputStream outputStream = new DataOutputStream(sock.getOutputStream());
-			inputStream.readObject();
-			outputStream.writeBytes(command + '\n');
-			result = (T) inputStream.readObject();
-			
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			port = Integer.parseInt(ClientConfig.getAppServerPort());
 		}
+		catch (NumberFormatException e) {
+			
+		}
+		
+		Socket sock = new Socket(ip, port);
+		ObjectInputStream inputStream = new ObjectInputStream(sock.getInputStream());
+		DataOutputStream outputStream = new DataOutputStream(sock.getOutputStream());
+		inputStream.readObject();
+		outputStream.writeBytes(command + '\n');
+		res = inputStream.readObject();
+		result = (T) res;
+			
 		return result;
 	}
 }

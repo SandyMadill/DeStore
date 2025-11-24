@@ -1,6 +1,7 @@
 package deStoreApplicationServer;
 
 import java.io.*;
+import java.sql.SQLException;
 import java.util.*;
 
 public class UpdateCommand implements ClientCommand {
@@ -18,35 +19,12 @@ public class UpdateCommand implements ClientCommand {
 	
 
 	@Override
-	public void exec() {
-		try {
-			String tablename = args.get(0);
-			List<CompareStmnt> sets = CompareStmnt.getCompareStmntsFromArgs(args, "s");
-			List<CompareStmnt> wheres = CompareStmnt.getCompareStmntsFromArgs(args, "w");
-			String dataResponse = dataRequestManager.update(tablename, sets, wheres);
-			objectOutputStream.writeObject(dataResponse);
-		} catch (Exception e) {
-			try {
-				objectOutputStream.writeObject(e.getMessage());
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
+	public void exec() throws Exception {
+		String tablename = args.get(0);
+		List<CompareStmnt> sets = CompareStmnt.getCompareStmntsFromArgs(args, "s");
+		List<CompareStmnt> wheres = CompareStmnt.getCompareStmntsFromArgs(args, "w");
+		String dataResponse = dataRequestManager.update(tablename, sets, wheres);
+		objectOutputStream.writeObject(dataResponse);
 		
 	}
-
-
-	@Override
-	public ObjectOutputStream getObjectOutputStream() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String help() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

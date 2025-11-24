@@ -16,40 +16,16 @@ public class ReportCommand implements ClientCommand {
 	
 
 	@Override
-	public void exec() {
-		try {
-			String tableName = args.get(0);
-			List<CompareStmnt> wheres = new ArrayList<CompareStmnt>();
-			try {
-				wheres.addAll(CompareStmnt.getCompareStmntsFromArgs(args, "w"));
-				int w = args.indexOf("-w");
-				if (w == -1) {
-					w = args.size();
-				}
-				List<String> columns = args.subList(1, w);
-				Object[] result = dataRequestManager.select(tableName, columns, wheres);
-				objectOutputStream.writeObject(result);
-			} catch (Exception e) {
-				objectOutputStream.writeObject(e.getMessage());
-			}
-		
+	public void exec() throws Exception {
+		String tableName = args.get(0);
+		List<CompareStmnt> wheres = new ArrayList<CompareStmnt>();
+		wheres.addAll(CompareStmnt.getCompareStmntsFromArgs(args, "w"));
+		int w = args.indexOf("-w");
+		if (w == -1) {
+			w = args.size();
 		}
-		catch (IOException e) {
-			
-		}
+		List<String> columns = args.subList(1, w);
+		Object[] result = dataRequestManager.select(tableName, columns, wheres);
+		objectOutputStream.writeObject(result);
 	}
-
-
-	@Override
-	public ObjectOutputStream getObjectOutputStream() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String help() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

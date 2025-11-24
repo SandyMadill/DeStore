@@ -24,7 +24,9 @@ CREATE TABLE destore.Stock(
 	stock_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	product_id int NOT NULL,
 	store_id int NOT NULL,
-	stock int
+	stock int,
+	FOREIGN KEY (product_id) REFERENCES Product(product_id),
+	FOREIGN KEY (store_id) REFERENCES Store(store_id)
 );
 
 CREATE TABLE destore.Price_Control(
@@ -32,16 +34,20 @@ CREATE TABLE destore.Price_Control(
 	product_id int NOT NULL,
 	store_id int NOT NULL,
 	cond VARCHAR(100),
-	rate FLOAT
+	rate FLOAT,
+	FOREIGN KEY (product_id) REFERENCES Product(product_id),
+	FOREIGN KEY (store_id) REFERENCES Store(store_id)
 );
 
 CREATE TABLE destore.Advance_Payment(
-	advance_Payment_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	advance_payment_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	product_id INT NOT NULL,
 	customer_id INT NOT NULL,
 	payment_rate INT,
 	purchase_date DATETIME,
 	payments_made INT,
 	payment_cost FLOAT,
-	complete BOOL
+	complete BOOLEAN,
+	FOREIGN KEY (product_id) REFERENCES Product(product_id),
+	FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
 );

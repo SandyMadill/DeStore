@@ -38,37 +38,24 @@ import org.json.simple.JSONObject;
 import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 import java.awt.Frame;
+import javax.swing.JComboBox;
+import java.awt.Font;
 
-public class MainWindow extends JFrame {
+public abstract class MainView extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private JTable table;
-	private JList tableNameList;
-	private HashMap<String, Table> tableMap;
-	private Table selectedTable;
+	protected JTable table;
+	protected JList tableNameList;
+	protected JButton btnConnect;
+	
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					MainWindow frame = new MainWindow();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
 	/**
 	 * Create the frame.
+	 * @throws Exception 
 	 */
-	public MainWindow() {
-		tableMap = new HashMap<String, Table>();
+	public MainView() throws Exception {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		setSize(screenSize);
 		setExtendedState(Frame.MAXIMIZED_BOTH);
@@ -76,81 +63,72 @@ public class MainWindow extends JFrame {
 		setVisible(true);
 		setResizable(false);
 		setAutoRequestFocus(false);
-		List<String> tableNamesArraylist = Table.getTableNames();
-		String[] tableNames = new String[tableNamesArraylist.size()];
-		for (int i = 0; i < tableNamesArraylist.size(); i++) {
-			tableNames[i] = tableNamesArraylist.get(i);
-		}
+		
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		
 		tableNameList = new JList();
-		tableNameList.setModel(new AbstractListModel() {
-			String[] values = tableNames;
-			
-			public int getSize() {
-				return values.length;
-			}
-			public Object getElementAt(int index) {
-				return values[index];
-			}
-		});
+		
+		JScrollPane scrollPane = new JScrollPane();
 		
 		JButton btnGetTable = new JButton("Get Table");
 		btnGetTable.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (tableNameList.getSelectedIndex() != -1) {
-					updateTable();
-				}
-				else {
-					JOptionPane.showMessageDialog(contentPane,
-							"You haven't selected a table",
-							"Validation Error",
-							JOptionPane.ERROR_MESSAGE);
-				}
+				btnGetTableClicked();
 			}
 		});
 		
-		JScrollPane scrollPane = new JScrollPane();
 		
-		JButton updateTableBtn = new JButton("Update Table");
+		
+		JButton updateTableBtn = new JButton("Update Row");
 		updateTableBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int row = table.getSelectedRow();
-				if (selectedTable == null) {
-					JOptionPane.showMessageDialog(contentPane,
-							"You haven't selected a table",
-							"Validation Error",
-							JOptionPane.ERROR_MESSAGE);
-				}
-				else if (row == -1) {
-					JOptionPane.showMessageDialog(contentPane,
-							"You haven't selected a row",
-							"Validation Error",
-							JOptionPane.ERROR_MESSAGE);
-				}
-				else {
-					UpdateTableForm tableForm = new UpdateTableForm(selectedTable, row);
-					tableForm.setVisible(true);
-				}
+				btnUpdateRowClicked();
 			}
 		});
 		
 		JButton btnAddRow = new JButton("Add Row");
 		btnAddRow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (selectedTable == null) {
-					JOptionPane.showMessageDialog(contentPane,
-							"You haven't selected a table",
-							"Validation Error",
-							JOptionPane.ERROR_MESSAGE);
-				}
-				else {
-					InsertTableForm tableForm = new InsertTableForm(selectedTable);
-					tableForm.setVisible(true);
-				}
+				btnAddRowClicked();
+			}
+		});
+		
+		JButton btnFilterColumn = new JButton("Filter Column");
+		btnFilterColumn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnFilterColumnClicked();
+			}
+		});
+		
+		JButton btnConfig = new JButton("Config");
+		btnConfig.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnConfigClicked();
+			}
+		});
+		
+		btnConnect = new JButton("Connect");
+		btnConnect.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnConnectClicked();
+			}
+		});
+		
+		JButton btnDeleteRow = new JButton("Delete Row");
+		btnDeleteRow.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnDeleteRowClicked();
+			}
+		});
+		
+		JButton btnClearFilters = new JButton("Clear Filters");
+		btnClearFilters.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnClearFiltersClicked();
 			}
 		});
 
@@ -159,15 +137,19 @@ public class MainWindow extends JFrame {
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-						.addComponent(btnGetTable)
-						.addComponent(tableNameList, GroupLayout.PREFERRED_SIZE, 142, GroupLayout.PREFERRED_SIZE)
-						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-							.addComponent(btnAddRow)
-							.addComponent(updateTableBtn)))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnGetTable, Alignment.TRAILING)
+						.addComponent(tableNameList, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+						.addComponent(updateTableBtn, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+						.addComponent(btnAddRow, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+						.addComponent(btnFilterColumn, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+						.addComponent(btnClearFilters, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+						.addComponent(btnDeleteRow, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+						.addComponent(btnConfig, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+						.addComponent(btnConnect, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1699, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(163, Short.MAX_VALUE))
+					.addGap(48))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -179,11 +161,21 @@ public class MainWindow extends JFrame {
 							.addComponent(btnGetTable)
 							.addGap(8)
 							.addComponent(tableNameList, GroupLayout.PREFERRED_SIZE, 131, GroupLayout.PREFERRED_SIZE)
-							.addGap(42)
+							.addGap(9)
+							.addComponent(btnConnect)
+							.addGap(8)
 							.addComponent(updateTableBtn)
 							.addGap(3)
-							.addComponent(btnAddRow)))
-					.addContainerGap(307, Short.MAX_VALUE))
+							.addComponent(btnAddRow)
+							.addGap(5)
+							.addComponent(btnDeleteRow)
+							.addGap(2)
+							.addComponent(btnFilterColumn)
+							.addGap(3)
+							.addComponent(btnClearFilters)
+							.addGap(3)
+							.addComponent(btnConfig)))
+					.addContainerGap(235, Short.MAX_VALUE))
 		);
 		
 		table = new JTable();
@@ -202,13 +194,21 @@ public class MainWindow extends JFrame {
 
 	}
 	
-	private void updateTable() {
-		String tableName = tableNameList.getModel().getElementAt(tableNameList.getSelectedIndex()).toString();
-		selectedTable = tableMap.get(tableName);
-		if (selectedTable == null) {
-			selectedTable = new Table(tableName, tableMap);
-		}
-		table.setModel(new DefaultTableModel(selectedTable.getTableData(), selectedTable.getColumnNames()));
-		
-	}
+	
+	protected abstract void btnGetTableClicked();
+	
+	protected abstract void btnAddRowClicked();
+	
+	protected abstract void btnUpdateRowClicked();
+	
+	protected abstract void btnDeleteRowClicked();
+	
+	protected abstract void btnFilterColumnClicked();
+	
+	protected abstract void btnClearFiltersClicked();
+	
+	protected abstract void btnConfigClicked();
+	
+	protected abstract void btnConnectClicked();
+	
 }

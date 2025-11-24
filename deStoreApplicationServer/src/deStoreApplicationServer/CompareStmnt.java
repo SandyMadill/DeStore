@@ -32,8 +32,6 @@ public class CompareStmnt {
 		int last = 0;
 		for (int i = 0; i < args.size(); i++) {
 			if (args.get(i).equals("-"+flag)) {
-				System.out.println(last);
-				System.out.println(i);
 				if (wheres.size() == 0 || last + 4 == i) {
 					try {
 						last = i;

@@ -4,29 +4,40 @@ import org.json.simple.*;
 import org.json.simple.parser.*;
 
 public class ClientConfig {
-	private JSONParser parser;
-	private String appServerIp;
-	private String appServerPort;
+	private static String fileLocation = "./src/config/config.json";
 	
-	public ClientConfig() {
-		parser = new JSONParser();
-		try {
-			JSONObject jsonConfig = (JSONObject) parser.parse(new FileReader("./src/config/config.json"));
-			appServerIp = (String) jsonConfig.get("appServerIp");
-			appServerPort = (String) jsonConfig.get("appServerPort");
-
-		}
-		catch(Exception e) {
-			System.out.println(e.getMessage());
-			e.printStackTrace();
-		}
+	
+	private static JSONObject loadJsonConfig() throws FileNotFoundException, IOException, ParseException {
+		return (JSONObject) new JSONParser().parse(new FileReader(fileLocation));
 	}
 	
-	public String getAppServerIp() {
-		return appServerIp;
+	private static void saveJsonConfig(JSONObject jsonConfig) throws IOException {
+		FileWriter file = new FileWriter(fileLocation);
+		file.write(jsonConfig.toJSONString());
+		file.close();
 	}
 	
-	public String getAppServerPort() {
-		return appServerPort;
+	public static String getAppServerIp() throws FileNotFoundException, IOException, ParseException {
+		return (String) loadJsonConfig().get("appServerIp");
 	}
+	
+	public static String getAppServerPort() throws FileNotFoundException, IOException, ParseException {
+		return (String) loadJsonConfig().get("appServerPort");
+	}
+	
+	public static void setAppServerIp(String appServerIp) throws FileNotFoundException, IOException, ParseException {
+		JSONObject jsonConfig = loadJsonConfig();
+		jsonConfig.put("appServerIp", appServerIp);
+		saveJsonConfig(jsonConfig);
+		
+	}
+	
+	public static void setAppServerPort(String appServerPort) throws FileNotFoundException, IOException, ParseException {
+		JSONObject jsonConfig = loadJsonConfig();
+		jsonConfig.put("appServerPort", appServerPort);
+		saveJsonConfig(jsonConfig);
+		
+	}
+	
+	
 }
