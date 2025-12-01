@@ -7,4 +7,5 @@
 module deStoreClientApp {
 	requires json.simple;
 	requires java.desktop;
+	requires jcalendar;
 }

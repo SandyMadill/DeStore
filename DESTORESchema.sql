@@ -33,7 +33,7 @@ CREATE TABLE destore.Price_Control(
 	price_control_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	product_id int NOT NULL,
 	store_id int NOT NULL,
-	cond VARCHAR(100),
+	min_quantity int,
 	rate FLOAT,
 	FOREIGN KEY (product_id) REFERENCES Product(product_id),
 	FOREIGN KEY (store_id) REFERENCES Store(store_id)
@@ -51,3 +51,12 @@ CREATE TABLE destore.Advance_Payment(
 	FOREIGN KEY (product_id) REFERENCES Product(product_id),
 	FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
 );
+
+CREATE TABLE destore.Sale (
+  sale_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  product_id int NOT NULL,
+  customer_id int NOT NULL,
+  store_id int NOT NULL,
+  sale_date date NOT NULL,
+)
+

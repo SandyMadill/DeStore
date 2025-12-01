@@ -3,6 +3,8 @@ package deStoreApplicationServer;
 import java.io.*;
 import java.util.*;
 
+import deStoreApplicationServer.tableEntities.TableEntity;
+
 public class RemoveCommand implements ClientCommand {
 	private ArrayList<String> args;
 	private ObjectOutputStream objectOutputStream;
@@ -18,9 +20,13 @@ public class RemoveCommand implements ClientCommand {
 	@Override
 	public void exec() throws Exception {
 		String tableName = args.get(0);
-		List<CompareStmnt> wheres = CompareStmnt.getCompareStmntsFromArgs(args, "w");
-		String result = dataRequestManager.delete(tableName, wheres);
-		objectOutputStream.writeObject(result);
+		TableEntity tableEntity = TableEntity.getTableEntityFromName(tableName);
+		int key = Integer.parseInt(args.get(1));
+		tableEntity.getKey().setVal(key);
+		
+		int res = dataRequestManager.deleteRow(tableEntity);
+		
+		objectOutputStream.writeObject(res);
 		
 	}
 

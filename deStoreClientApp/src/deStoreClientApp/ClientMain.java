@@ -7,15 +7,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+
 public class ClientMain {
 	private static List<TableModel> tableList; 
 	
 	public static void main(String[] args) {
 		tableList = new ArrayList<TableModel>();
 		try {
-			TableModel.getTableNames().forEach(tableName ->{
+			TableModel.getTableNames().forEach(rep ->{
 				try {
-					tableList.add(new TableModel(tableName));
+					tableList.add(new TableModel((String) rep[0], (boolean) rep[1]));
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

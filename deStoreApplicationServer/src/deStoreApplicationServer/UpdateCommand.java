@@ -4,6 +4,8 @@ import java.io.*;
 import java.sql.SQLException;
 import java.util.*;
 
+import deStoreApplicationServer.tableEntities.TableEntity;
+
 public class UpdateCommand implements ClientCommand {
 	
 	private ArrayList<String> args;
@@ -21,10 +23,21 @@ public class UpdateCommand implements ClientCommand {
 	@Override
 	public void exec() throws Exception {
 		String tablename = args.get(0);
-		List<CompareStmnt> sets = CompareStmnt.getCompareStmntsFromArgs(args, "s");
-		List<CompareStmnt> wheres = CompareStmnt.getCompareStmntsFromArgs(args, "w");
-		String dataResponse = dataRequestManager.update(tablename, sets, wheres);
-		objectOutputStream.writeObject(dataResponse);
+		int key = Integer.parseInt(args.get(1));
+		TableEntity tableEntity = TableEntity.getTableEntityFromName(tablename);
+		tableEntity.getKey().setVal(key);
+		
+		String[] newColumns = new String[args.size()-2];
+		for (int i=2;i<args.size();i++) {
+			newColumns[i-2] = args.get(i);
+		}
+		
+		tableEntity.mapClientArgsToEntity(newColumns);
+		
+		
+		
+		int res = dataRequestManager.updateRow(tableEntity);
+		objectOutputStream.writeObject(res);
 		
 	}
 }

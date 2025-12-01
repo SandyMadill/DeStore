@@ -52,7 +52,7 @@ public class MainController extends MainView {
 			tableNames[i] = tableModel.getTableName();
 		}
 		
-		tableNameList.setModel(new AbstractListModel() {
+		reportNameList.setModel(new AbstractListModel() {
 			String[] values = tableNames;
 			public int getSize() {
 				return values.length;
@@ -64,14 +64,20 @@ public class MainController extends MainView {
 	}
 	
 	private void updateSelectedTable() {
-		if (tableNameList.getSelectedIndex() == -1) {
+		if (reportNameList.getSelectedIndex() == -1) {
 			JOptionPane.showMessageDialog(getContentPane(),
 					"No table selected",
 					"Error",
 					JOptionPane.ERROR_MESSAGE);
 		}
 		else {
-			selectedTable = tableMap.get(tableNameList.getSelectedValue());
+			selectedTable = tableMap.get(reportNameList.getSelectedValue());
+			if (selectedTable.getSpecialReport()) {
+				disableEditButtons();
+			}
+			else {
+				enableEditButtons();
+			}
 		}
 	}
 	
@@ -136,43 +142,6 @@ public class MainController extends MainView {
 	}
 
 	@Override
-	protected void btnFilterColumnClicked() {
-		if (selectedTable == null) {
-			JOptionPane.showMessageDialog(getContentPane(),
-					"No table selected",
-					"Error",
-					JOptionPane.ERROR_MESSAGE);
-		}
-		else {
-			TableFilterFormController filterForm = new TableFilterFormController(selectedTable);
-			filterForm.setVisible(true);
-		}
-		
-	}
-
-	@Override
-	protected void btnClearFiltersClicked() {
-		if (selectedTable == null) {
-			JOptionPane.showMessageDialog(getContentPane(),
-					"No table selected",
-					"Error",
-					JOptionPane.ERROR_MESSAGE);
-		}
-		else {
-			try {
-				selectedTable.clearFilters();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				JOptionPane.showMessageDialog(getContentPane(),
-						e.getMessage(),
-						"Error",
-						JOptionPane.ERROR_MESSAGE);
-			}
-		}
-		
-	}
-
-	@Override
 	protected void btnConfigClicked() {
 		try {
 			ConfigView configView = new ConfigView();
@@ -184,10 +153,20 @@ public class MainController extends MainView {
 		
 	}
 
+
 	@Override
 	protected void btnConnectClicked() {
 		try {
-			List<String> tableNames = TableModel.getTableNames();
+			ArrayList<TableModel> tableList = new ArrayList<TableModel>();
+			TableModel.getTableNames().forEach(rep ->{
+				try {
+					tableList.add(new TableModel((String) rep[0], (boolean) rep[1]));
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			});
+			initial(tableList);
 		} catch (UnknownHostException e) {
 			JOptionPane.showMessageDialog(getContentPane(),
 					"Failed to connect to the server.",
@@ -216,6 +195,31 @@ public class MainController extends MainView {
 	private void disableConnectButton() {
 		super.btnConnect.setVisible(false);
 		super.btnConnect.setEnabled(false);
+	}
+	
+	/***
+	 * disables the update row and add row buttons
+	 */
+	private void disableEditButtons() {
+		btnAddRow.setVisible(false);
+		btnAddRow.setEnabled(false);
+		btnUpdateRow.setVisible(false);
+		btnUpdateRow.setEnabled(false);
+		btnDeleteRow.setVisible(false);
+		btnDeleteRow.setEnabled(false);
+	}
+	
+	/**
+	 * enables the update row and add row buttons
+	 *
+	 */
+	private void enableEditButtons() {
+		btnAddRow.setVisible(true);
+		btnAddRow.setEnabled(true);
+		btnUpdateRow.setVisible(true);
+		btnUpdateRow.setEnabled(true);
+		btnDeleteRow.setVisible(true);
+		btnDeleteRow.setEnabled(true);
 	}
 
 

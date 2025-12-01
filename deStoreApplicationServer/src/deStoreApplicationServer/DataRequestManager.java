@@ -1,47 +1,38 @@
 package deStoreApplicationServer;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.json.simple.*;
+import org.json.simple.parser.ParseException;
+
+import deStoreApplicationServer.tableEntities.Column;
+import deStoreApplicationServer.tableEntities.Store;
+import deStoreApplicationServer.tableEntities.TableEntity;
 
 /**
- * Connects to the data server and makes requests
+ * Connects to the data server and makes sql requests
  */
 public class DataRequestManager {
 	private Connection conn;
 	
-	public DataRequestManager() {
-		try {
-			System.out.println("Connecting to data server");
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			AppServerConfig config = new AppServerConfig();
-			conn = DriverManager.getConnection("jdbc:mysql://" + config.getDataServerIp() + ":" + config.getDataServerPort() + "/destore?user=root&password="+config.getDataServerPassword());
-			System.out.println("connected to data server");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+	public DataRequestManager() throws ClassNotFoundException, SQLException, FileNotFoundException, IOException, ParseException {
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		AppServerConfig config = new AppServerConfig();
+		conn = DriverManager.getConnection("jdbc:mysql://" + AppServerConfig.getDataServerIp() + ":" + AppServerConfig.getDataServerPort() + "/destore?user=root&password="+AppServerConfig.getDataServerPassword());
+		System.out.println("connected to data server");
 	}
 	
 	/***
-	 * 	creates the columns and values section of the prepared statement
-	 * @param columns the number of columns in the sql statement
-	 * @return the prepared statement section for the columns and values (should be reused for both)
+	 * generates a section of an sql statment for column names or values where 
+	 * @param values the text being put into the statement
+	 * @param Delimiter the text that seperates the different propeties
+	 * @param start if the statement needs a section at the start it can be put here
+	 * @return a string starting with the start parameter followed by each values item with the Delimiter string in between each
 	 */
-	private String generateColumnsStmnt(List<String> columnNames) {
-		String stmnt = "";
-		for (int i=0;i<columnNames.size();i++) {
-			stmnt+=columnNames.get(i);
-			if (i+1 < columnNames.size()) {
-				stmnt+=", ";
-			}
-		}
-		return stmnt;
-	}
-	
 	private String generateStmntSlice(List<String> values, String Delimiter, String start) {
 		String stmnt = start;
 		for (int i=0;i<values.size();i++) {
@@ -57,166 +48,110 @@ public class DataRequestManager {
 	 * Creates a prepared statement
 	 * @param params an array list of each parameter in order
 	 * @param stmntString the string of the prepared statement
-	 * @return a prepared statement using the statement string and the parameters
-	 * @throws SQLException
+	 * @return a prepared statement with each of the param
+	 * @throws SQLException if it fails to set an object into the statement
 	 */
-	private PreparedStatement prepareStatement(ArrayList<String> params, String stmntString) throws SQLException {
+	private PreparedStatement prepareStatement(ArrayList<Object> params, String stmntString) throws SQLException {
 		PreparedStatement stmnt = conn.prepareStatement(stmntString);
 		for (int i=0;i<params.size();i++) {
-			stmnt.setString(i+1, params.get(i));
+			stmnt.setObject(i+1, params.get(i));
 		}
 		
 		return stmnt;
 	}
 	
-	
-	
-	public String insert(String tableName, List<String> columnNames, List<String> columnValues) throws SQLException {
-		if (columnNames.size() != columnValues.size()) {
-			return "ERROR: the number of column names and values in the request do not match";
-		}
-		else {
-			String columnsStmnt = generateStmntSlice(columnNames, ",", "");
-			ArrayList<String> qs = new ArrayList<String>();
-			columnValues.forEach(column ->{
-				qs.add("?");
-			});
-			String valuesStmnt = generateStmntSlice(qs, ",", "");
-			String stmntString = "INSERT INTO " + tableName + "(" + columnsStmnt + ") VALUES (" + valuesStmnt + ")";
-			ArrayList<String> params = new ArrayList<String>();
-
-			params.addAll(columnValues);
-				
-			PreparedStatement stmnt = prepareStatement(params, stmntString);
-			
-			int res = stmnt.executeUpdate();
-			stmnt.close();
-			return String.valueOf(res);
-		}
+	/***
+	 * retrieves a result table from the data server of a specific table entity
+	 * @param <T> the type of table entity being requested
+	 * @param entity an instance of the table entity class being requested (the values of it's columns will have no impact on this method) it's only needed because of java's type erasure
+	 * @return a result set of the data from the data server
+	 * @throws SQLException if the SQL request fails 
+	 */
+	public <T extends TableEntity> ResultSet getTable(T entity) throws  SQLException {
+		String tableName = entity.getTableName();
+		List<String> columns = new ArrayList<String>();
+		return conn.createStatement().executeQuery("SELECT * FROM " + tableName);
 	}
 	
-	public Object[] select(String tableName, List<String> columnNames, List<CompareStmnt> wheres) throws SQLException {
-		String columnsStmnt = generateColumnsStmnt(columnNames);
-		String wheresStmnt = "";
-		ArrayList<String> params = new ArrayList<String>();
+	/***
+	 * adds an instance of a table entity to the table in the data server
+	 * @param <T> the type of table entity being inserted
+	 * @param entity the instance of the table entity being inserted with it's values in each of it's column properties
+	 * @return an integer indicating the SQL update was executed successfully
+	 * @throws SQLException if the SQL update fails
+	 */
+	public <T extends TableEntity> int insertRow(T entity) throws SQLException {
+		List<String> columns = new ArrayList<String>();
+		ArrayList<Object> args = new ArrayList<Object>();
+		ArrayList<String> qs = new ArrayList<String>();
+		String tableName = entity.getTableName();
 		
-		if (wheres.size() > 0) {
-			List<String> whereComparisons = new ArrayList<String>();
-			for (int i=0;i<wheres.size();i++) {
-				params.add(wheres.get(i).getVal());
-				whereComparisons.add(wheres.get(i).getPreparedStatementSlice());
-			}
-			wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " Where ");
-		}
+		//	get the relevent data for each column
+		entity.getColumns().forEach(column -> {
+			columns.add(column.getDataName());
+			args.add(column.getVal());
+			qs.add("?");
+		});
 		
-		String stmntString = "SELECT " + columnsStmnt + " FROM " + tableName + wheresStmnt;
-			
-			
-		PreparedStatement stmnt = prepareStatement(params, stmntString);
-		ResultSet result = stmnt.executeQuery();
-		ArrayList<String[]> tableData = new ArrayList<String[]>();
-			
-		while (result.next()) {
-			String[] row = new String[columnNames.size()];
-			for (int i=0;i<columnNames.size();i++) {
-				row[i]= result.getString(columnNames.get(i));
-			}
-			tableData.add(row);
-		}
-			
-		return tableData.toArray();
+		//	generate the sql statement
+		String stmntstr = "INSERT INTO " + tableName + "(" + generateStmntSlice(columns, ", " , "") + ") VALUES (" + generateStmntSlice(qs, ",", "") + ")";
+		PreparedStatement stmnt = prepareStatement(args, stmntstr);
+		
+		//	execute the sql update
+		return stmnt.executeUpdate();
 	}
 	
-	public String update(String tableName, List<CompareStmnt> sets, List<CompareStmnt> wheres) throws SQLException {
-		ArrayList<String> params = new ArrayList<String>();
-		String setsStmnt = "";
-		if (sets.size() > 0) {
-			List<String> setComparisons = new ArrayList<String>();
-			sets.forEach(s -> {
-				params.add(s.getVal());
-				setComparisons.add(s.getPreparedStatementSlice());
-			});
-			setsStmnt = generateStmntSlice(setComparisons, ",", " SET ");
-		}
+	/***
+	 * updates a row in a table in the data server
+	 * @param <T> the table entity type being updated
+	 * @param entity the instance of the new table row with each column containing it's new data and it's key column containing it's id (this is needed to identify it in the data server)
+	 * @return an integer indicating the SQL update was executed successfully
+	 * @throws SQLException if the SQL update fails
+	 */
+	public <T extends TableEntity> int updateRow(T entity) throws SQLException {
+		List<String> comparisons = new ArrayList<String>();
+		ArrayList<Object> args = new ArrayList<Object>();
 		
-		String wheresStmnt = "";
+		//	get the relevant propeties from the table entity instance
+		Column<Integer> key = entity.getKey();
+		String tableName = entity.getTableName();
+		entity.getColumns().forEach(column -> {
+			comparisons.add(column.getDataName() + " = ?");
+			args.add(column.getVal());
+		});
 		
-		if (wheres.size() > 0) {
-			List<String> whereComparisons = new ArrayList<String>();
-			wheres.forEach(w ->{
-				params.add(w.getVal());
-				whereComparisons.add(w.getPreparedStatementSlice());
-			});
-			wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " WHERE ");
-		}
+		//	generate the SQL statement
+		String stmntstr = "UPDATE " + tableName + " SET " + generateStmntSlice(comparisons, ", ", "") + " WHERE " + key.getDataName() + " = ?";
+		args.add(key.getVal());
+		PreparedStatement stmnt = prepareStatement(args, stmntstr);
 		
-		String stmntString = "UPDATE " + tableName + setsStmnt + wheresStmnt;
-		
-		
-		PreparedStatement stmnt = prepareStatement(params, stmntString);
-		
-		System.out.println(stmnt.toString());
-			
-		int res = stmnt.executeUpdate();
-		return String.valueOf(res);	
+		//	execute the SQL update
+		return stmnt.executeUpdate();
 	}
 	
-	public String delete(String tableName, List<CompareStmnt> wheres) throws SQLException {
-		ArrayList<String> params = new ArrayList<String>();
-		String wheresStmnt = "";
-			
-		if (wheres.size() > 0) {
-			List<String> whereComparisons = new ArrayList<String>();
-			wheres.forEach(w ->{
-				params.add(w.getVal());
-				whereComparisons.add(w.getPreparedStatementSlice());
-			});
-			wheresStmnt = generateStmntSlice(whereComparisons, " AND ", " WHERE ");
-		}
+	/***
+	 * removes a row from a table in the data server
+	 * @param <T> the table entity type being removed
+	 * @param the instance of the table entity being removed (it only needs the key column the rest of the column property values are irrelevant)
+	 * @return an integer indicating the SQL update was executed successfully
+	 * @throws SQLException if the SQL update fails
+	 */
+	public <T extends TableEntity> int deleteRow(T entity) throws SQLException {
+		Column<Integer> key = entity.getKey();
+		String tableName = entity.getTableName();
 		
-		String stmntString = "DELETE FROM " + tableName + wheresStmnt;
+		//	this array list only contains the tables key, it's only needed to make use of the prepareStatement helper function
+		ArrayList<Object> args = new ArrayList<Object>();	
+		args.add(key.getVal());
 		
+		//	generate the SQL statement
+		String stmntstr = "DELETE FROM " + tableName + " WHERE " + key.getDataName() + " = ?";
+		PreparedStatement preparedStatement = prepareStatement(args, stmntstr);
 		
-		PreparedStatement stmnt = prepareStatement(params, stmntString);
-		
-		System.out.println(stmnt.toString());
-		
-		int res = stmnt.executeUpdate();
-		return String.valueOf(res);
-		
+		//	execute the SQL update
+		return preparedStatement.executeUpdate();
 	}
 	
-	public ArrayList<String> getTableNames() throws SQLException{
-		ArrayList<String> tableNames = new ArrayList<String>();
-		Statement statement = conn.createStatement();
-		ResultSet result = statement.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = \"destore\";");
-		while (result.next()) {
-			tableNames.add(result.getString("table_name"));
-		}
-
-		return tableNames;
-	}
-	
-	public ArrayList<String[]> getColumnsForTable(String tableName) throws SQLException{
-		ArrayList<String[]> columnNames = new ArrayList<String[]>();
-		Statement statement = conn.createStatement();
-		String stmntString = "SELECT c.COLUMN_NAME, c.DATA_TYPE, c.COLUMN_KEY, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME \n"
-				+ "FROM INFORMATION_SCHEMA.COLUMNS c LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE k \n"
-				+ "ON k.TABLE_NAME = c.TABLE_NAME AND k.COLUMN_NAME = c.COLUMN_NAME\n"
-				+ "WHERE c.TABLE_NAME = '" + tableName + "'";
-		ResultSet result = statement.executeQuery(stmntString);
-		String command = "report " + tableName;
-		while (result.next()) {
-			String[] column = new String[5];
-			column[0] = result.getString("COLUMN_NAME");
-			column[1] = result.getString("DATA_TYPE");
-			column[2] = result.getString("COLUMN_KEY");
-			column[3] = result.getString("REFERENCED_TABLE_NAME");
-			column[4] = result.getString("REFERENCED_COLUMN_NAME");
-			columnNames.add(column);
-		}
-		return columnNames;
-	}
 	
 	
 }

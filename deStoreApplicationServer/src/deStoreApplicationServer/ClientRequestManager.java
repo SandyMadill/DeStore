@@ -5,36 +5,28 @@ import java.io.IOException;
 import java.net.*;
 import java.util.Date;
 
+import org.json.simple.parser.ParseException;
+
 /****
  * Handles requests to the app server from the client
  */
-public class ClientRequestManager {
+public class ClientRequestManager implements Runnable {
 	
 	private DataRequestManager dataRequestManager;
 	private ServerSocket server;
-	private AppServerConfig config;
 	
-	public ClientRequestManager(DataRequestManager dataRequestManager) {
-		try {
-			this.dataRequestManager = dataRequestManager;
-			config = new AppServerConfig();
-			server = new ServerSocket(Integer.parseInt(config.getAppServerPort()));
-			recieveClientRequests();
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public ClientRequestManager(DataRequestManager dataRequestManager) throws NumberFormatException, IOException, ParseException {
+		this.dataRequestManager = dataRequestManager;
+		server = new ServerSocket(Integer.parseInt(AppServerConfig.getAppServerPort()));
 	}
 	
-	private void recieveClientRequests() {
+	@Override
+	public void run() {
 		while(true) {
 			try {
 				Socket sock = server.accept();
-				Thread thread = new ClientCommandParser(sock, dataRequestManager);
-				thread.run();
+				Thread thread = new Thread(new ClientCommandParser(sock, dataRequestManager));
+				thread.start();
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

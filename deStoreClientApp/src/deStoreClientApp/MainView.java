@@ -40,14 +40,18 @@ import javax.swing.JScrollPane;
 import java.awt.Frame;
 import javax.swing.JComboBox;
 import java.awt.Font;
+import java.awt.Component;
 
 public abstract class MainView extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	protected JTable table;
-	protected JList tableNameList;
+	protected JList reportNameList;
 	protected JButton btnConnect;
+	protected JButton btnUpdateRow;
+	protected JButton btnAddRow;
+	protected JButton btnDeleteRow;
 	
 
 
@@ -70,12 +74,11 @@ public abstract class MainView extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		
-		tableNameList = new JList();
-		
 		JScrollPane scrollPane = new JScrollPane();
 		
-		JButton btnGetTable = new JButton("Get Table");
-		btnGetTable.addActionListener(new ActionListener() {
+		JButton btnGetReport = new JButton("Get Report");
+		btnGetReport.setActionCommand("Get Report");
+		btnGetReport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				btnGetTableClicked();
 			}
@@ -83,24 +86,17 @@ public abstract class MainView extends JFrame {
 		
 		
 		
-		JButton updateTableBtn = new JButton("Update Row");
-		updateTableBtn.addActionListener(new ActionListener() {
+		btnUpdateRow = new JButton("Update Row");
+		btnUpdateRow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				btnUpdateRowClicked();
 			}
 		});
 		
-		JButton btnAddRow = new JButton("Add Row");
+		btnAddRow = new JButton("Add Row");
 		btnAddRow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				btnAddRowClicked();
-			}
-		});
-		
-		JButton btnFilterColumn = new JButton("Filter Column");
-		btnFilterColumn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnFilterColumnClicked();
 			}
 		});
 		
@@ -118,19 +114,17 @@ public abstract class MainView extends JFrame {
 			}
 		});
 		
-		JButton btnDeleteRow = new JButton("Delete Row");
+		btnDeleteRow = new JButton("Delete Row");
 		btnDeleteRow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				btnDeleteRowClicked();
 			}
 		});
 		
-		JButton btnClearFilters = new JButton("Clear Filters");
-		btnClearFilters.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnClearFiltersClicked();
-			}
-		});
+		JScrollPane tableListScroll = new JScrollPane();
+		tableListScroll.setAutoscrolls(true);
+		tableListScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+		tableListScroll.setAlignmentY(Component.TOP_ALIGNMENT);
 
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
@@ -138,45 +132,49 @@ public abstract class MainView extends JFrame {
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(btnGetTable, Alignment.TRAILING)
-						.addComponent(tableNameList, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-						.addComponent(updateTableBtn, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-						.addComponent(btnAddRow, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-						.addComponent(btnFilterColumn, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-						.addComponent(btnClearFilters, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-						.addComponent(btnDeleteRow, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-						.addComponent(btnConfig, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
-						.addComponent(btnConnect, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1699, GroupLayout.PREFERRED_SIZE)
-					.addGap(48))
+						.addComponent(btnUpdateRow, GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
+						.addComponent(btnAddRow, GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
+						.addComponent(btnDeleteRow, GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
+						.addComponent(btnConnect, GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
+						.addComponent(btnConfig, GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addGap(43)
+							.addComponent(btnGetReport)
+							.addGap(9))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addGap(13)
+							.addComponent(tableListScroll, GroupLayout.PREFERRED_SIZE, 141, GroupLayout.PREFERRED_SIZE)))
+					.addGap(18)
+					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1696, GroupLayout.PREFERRED_SIZE)
+					.addGap(30))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
-					.addGap(21)
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-						.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 777, GroupLayout.PREFERRED_SIZE)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_contentPane.createSequentialGroup()
-							.addComponent(btnGetTable)
-							.addGap(8)
-							.addComponent(tableNameList, GroupLayout.PREFERRED_SIZE, 131, GroupLayout.PREFERRED_SIZE)
-							.addGap(9)
+							.addGap(83)
+							.addComponent(btnGetReport)
+							.addGap(28)
+							.addComponent(tableListScroll, GroupLayout.PREFERRED_SIZE, 139, GroupLayout.PREFERRED_SIZE)
+							.addGap(26)
 							.addComponent(btnConnect)
 							.addGap(8)
-							.addComponent(updateTableBtn)
+							.addComponent(btnUpdateRow)
 							.addGap(3)
 							.addComponent(btnAddRow)
 							.addGap(5)
 							.addComponent(btnDeleteRow)
-							.addGap(2)
-							.addComponent(btnFilterColumn)
 							.addGap(3)
-							.addComponent(btnClearFilters)
-							.addGap(3)
-							.addComponent(btnConfig)))
-					.addContainerGap(235, Short.MAX_VALUE))
+							.addComponent(btnConfig))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addGap(21)
+							.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 774, GroupLayout.PREFERRED_SIZE)))
+					.addContainerGap(238, Short.MAX_VALUE))
 		);
+		
+		reportNameList = new JList();
+		tableListScroll.setViewportView(reportNameList);
 		
 		table = new JTable();
 		scrollPane.setViewportView(table);
@@ -203,12 +201,7 @@ public abstract class MainView extends JFrame {
 	
 	protected abstract void btnDeleteRowClicked();
 	
-	protected abstract void btnFilterColumnClicked();
-	
-	protected abstract void btnClearFiltersClicked();
-	
 	protected abstract void btnConfigClicked();
 	
 	protected abstract void btnConnectClicked();
-	
 }

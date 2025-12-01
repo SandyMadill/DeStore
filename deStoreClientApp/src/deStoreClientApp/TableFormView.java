@@ -3,11 +3,18 @@ package deStoreClientApp;
 import java.awt.EventQueue;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
+
+import deStoreClientApp.formComponents.FormCheckBoxComponent;
+import deStoreClientApp.formComponents.FormDateComponent;
+import deStoreClientApp.formComponents.FormTextComponent;
+
 import javax.swing.JEditorPane;
 import javax.swing.JFormattedTextField;
 import javax.swing.JComboBox;
@@ -32,28 +39,17 @@ public abstract class TableFormView extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	protected ArrayList<JTextField> textFields;
+	protected ArrayList<FormComponent> formComponents;
 	protected TableModel formTable;
-
+	protected JPanel formPannel;
 	
-	private JPanel createFormComponent(String columnName) {
-		
-		JPanel newPanel = new JPanel();
-		newPanel.add(new JLabel(columnName));
-		JTextField textField = null;
-		try {
-			textField = formTable.getTextFieldForColumn(columnName);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		textField.setColumns(10);
-		textFields.add(textField);
-		newPanel.add(textField);
-		return newPanel;
-	}
-	
+	protected static Map<String, ?> formComponentMap = Map.of(
+				"LocalDate", FormDateComponent.class,
+				"String" , FormTextComponent.class,
+				"Integer" , FormTextComponent.class,
+				"Float" , FormTextComponent.class,
+				"Boolean" , FormCheckBoxComponent.class
+			);
 
 	/**
 	 * Create the frame.
@@ -62,12 +58,16 @@ public abstract class TableFormView extends JFrame {
 		JButton btnSubmit = new JButton("Submit");
 		btnSubmit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				onSubmit();
+				Object[] newColumnVals = new Object[formComponents.size()];
+				for (int i=0;i<formComponents.size();i++) {
+					newColumnVals[i] = formComponents.get(i).getVal();
+				}
+				onSubmit(newColumnVals);
 			}
 		});
 		
 		setResizable(false);
-		textFields = new ArrayList<JTextField>();
+		formComponents = new ArrayList<FormComponent>();
 		formTable = table;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 509, 375);
@@ -79,22 +79,12 @@ public abstract class TableFormView extends JFrame {
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
-		JPanel formPannel = new JPanel();
+		formPannel = new JPanel();
 		formPannel.setMinimumSize(new Dimension(240, 420));
 		scrollPane.setViewportView(formPannel);
 		formPannel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		formPannel.setLayout(new GridLayout(0, 1, 0, 0));
 		
-		JPanel submitPannel = new JPanel();
-		formPannel.add(submitPannel);
-		
-		String[] columnNames = formTable.getColumnNames();
-		int key = table.getKey();
-		for (int i=0;i< columnNames.length;i++) {
-			if (i!=key) {
-				formPannel.add(createFormComponent(columnNames[i]));
-			}
-		}
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -120,6 +110,6 @@ public abstract class TableFormView extends JFrame {
 		
 	}
 	
-	protected abstract void onSubmit();
+	protected abstract void onSubmit(Object[] newColumnVals);
 
 }
