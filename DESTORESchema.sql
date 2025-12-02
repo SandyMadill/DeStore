@@ -58,5 +58,8 @@ CREATE TABLE destore.Sale (
   customer_id int NOT NULL,
   store_id int NOT NULL,
   sale_date date NOT NULL,
-)
+  FOREIGN KEY (product_id) REFERENCES Product(product_id),
+  FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+  FOREIGN KEY (store_id) REFERENCES Store(store_id)
+);
 

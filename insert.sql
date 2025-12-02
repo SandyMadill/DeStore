@@ -16,7 +16,7 @@ INSERT INTO destore.Product(product_name, product_price) VALUES
 ('Vacuum Cleaner','109.99'),
 ('Lawnmower','249.99'),
 ('Armchair','89.99'),
-('Radiator','163.16'),;
+('Radiator','163.16');
 
 INSERT INTO destore.Sale(product_id, customer_id, store_id, sale_date) VALUES('4','2','1','2025-07-23'),
 ('3','2','2','2025-08-21'),
@@ -64,9 +64,9 @@ INSERT INTO destore.Stock(product_id, store_id, stock) VALUES
 ('5','5','23');
 
 INSERT INTO destore.Price_Control(product_id, store_id, min_quantity, rate) VALUES('1','2','2','0'),
-('5','2','3','0.5')
-('3','3','1','0.9')
-('4','2','3','0.66')
+('5','2','3','0.5'),
+('3','3','1','0.9'),
+('4','2','3','0.66'),
 ('1','2','5','0.7');
 
 INSERT INTO destore.Advance_Payment(product_id, customer_id, payment_rate, purchase_date, payments_made, payment_cost, complete) VALUES
